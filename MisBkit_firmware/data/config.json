@@ -1,0 +1,90 @@
+{
+    "ssid":"MisBKit00",
+    "pswd":"ensadmbk00",
+    "dhcp":false,
+    "ip":[192,168,0,106],
+    "ports":[
+        {
+            "type":"portC",
+            "units":[
+                {
+                    "model":"sensor_generic",
+                    "io":0,
+                    "alpha":0.5
+                }
+            ]
+        },
+        {
+            "type":"portC",
+            "units":[
+                {
+                    "model":"sensor_generic",
+                    "io":0,
+                    "alpha":0.5
+                }
+            ]
+        },
+        {
+            "type":"portC",
+            "units":[
+                {
+                    "model":"sensor_generic",
+                    "io":0,
+                    "alpha":0.5
+                }
+            ]
+        },
+        {
+            "type":"portC",
+            "units":[
+                {
+                    "model":"sensor_generic",
+                    "io":0,
+                    "alpha":0.5
+                }
+            ]
+        },
+        {
+            "type":"portA",
+            "units":[
+                {
+                    "model":"sensor_dlight",
+                    "io":1,
+                    "alpha":0.5
+                }
+            ]
+        }
+    ],
+    "rc": {
+        "channels": [
+            {
+                "enabled": false,
+                "min_angle": 0,
+                "max_angle": 270,
+                "default_speed_dps": 90,
+                "easing_type": 0
+            },
+            {
+                "enabled": false,
+                "min_angle": 0,
+                "max_angle": 270,
+                "default_speed_dps": 90,
+                "easing_type": 0
+            },
+            {
+                "enabled": false,
+                "min_angle": 0,
+                "max_angle": 270,
+                "default_speed_dps": 90,
+                "easing_type": 0
+            },
+            {
+                "enabled": false,
+                "min_angle": 0,
+                "max_angle": 270,
+                "default_speed_dps": 90,
+                "easing_type": 0
+            }
+        ]
+    }
+}
