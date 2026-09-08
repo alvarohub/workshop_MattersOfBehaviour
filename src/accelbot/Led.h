@@ -1,7 +1,7 @@
 // Copied from MisBkit_firmware/src/Led.h (Etienne Montenegro)
 // Adapted: no functional changes.
-#ifndef MISBKIT_LED_H
-#define MISBKIT_LED_H
+#ifndef ACCELBOT_LED_H
+#define ACCELBOT_LED_H
 
 #include <Arduino.h>
 
@@ -20,4 +20,4 @@ void off();
 void update();
 }  // namespace led
 
-#endif // MISBKIT_LED_H
+#endif // ACCELBOT_LED_H

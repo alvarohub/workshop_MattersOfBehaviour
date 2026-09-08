@@ -1,10 +1,9 @@
 /**
  * @file Pins.h
- * @brief Shared pin conventions for the M5StampS3 projects in this workspace.
- *        Mirrors MisBkit_firmware/include/Pins.h (ARDUINO_M5Stack_StampS3, stamps3A variant).
+ * @brief Pin conventions for the AccelBot project (M5StampS3, stamps3A variant).
  */
-#ifndef SHYLAB_PINS_H
-#define SHYLAB_PINS_H
+#ifndef ACCELBOT_PINS_H
+#define ACCELBOT_PINS_H
 #include <Arduino.h>
 
 namespace pins {
@@ -24,7 +23,8 @@ const uint8_t analogSensor4{11};
 // SDA = 13, SCL = 15 on the StampS3; Wire is already started by M5.begin()
 
 const uint8_t led{21};             // RGB status LED
+const uint8_t ledStrip{5};         // WS2812 rings in series; pad labelled G1 routes to GPIO 5
 const uint8_t button{0};           // BtnA
 
 } // namespace pins
-#endif
+#endif // ACCELBOT_PINS_H

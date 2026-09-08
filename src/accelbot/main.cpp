@@ -1,14 +1,62 @@
 // AccelBot — M5StampS3 + 2x Dynamixel + MPU6886 accel module (I2C 0x68, PortA/Grove).
 // Wearable "hat": head tilt (inclination vs gravity) morphs the shape.
-//   tilt X (roll,  ear-to-shoulder)  -> motor 1
-//   tilt Y (pitch, nod)              -> motor 2
+//   tilt X (roll,  ear-to-shoulder)  -> motor 1 + large ring colorwheel
+//   tilt Y (pitch, nod)              -> motor 2 + small ring colorwheel
 // IMU init/register map follows MisBKit UnitMPU6886.h
 #include <M5Unified.h>
 #include <Dynamixel2Arduino.h>
+#include <Adafruit_NeoPixel.h>
 #include <Wire.h>
 #include <math.h>
 #include "Pins.h"
 #include "Led.h"
+
+// ---------- LED rings: two WS2812B rings in series on G5 ----------
+// (the pad labelled G1 on this board is actually wired to GPIO 5)
+#define RING1_LEDS        24       // large ring (first in series)  <- tilt X
+#define RING2_LEDS        16       // small ring (second in series) <- tilt Y
+#define RING_BRIGHTNESS   120
+#define WHEEL_SPIN_GAIN   4.0f     // wheel rotation per degree of tilt (spins 4x)
+#define BOOT_RING_MS      2000     // each ring spins its wheel this long at boot
+
+static Adafruit_NeoPixel rings(RING1_LEDS + RING2_LEDS, pins::ledStrip, NEO_GRB + NEO_KHZ800);
+
+// Adafruit-style colorwheel: pos 0..255 -> R->G->B->R
+static uint32_t wheelColor(uint8_t pos)
+{
+  if (pos < 85)  return rings.Color(255 - pos * 3, pos * 3, 0);
+  if (pos < 170) { pos -= 85;  return rings.Color(0, 255 - pos * 3, pos * 3); }
+  pos -= 170;                  return rings.Color(pos * 3, 0, 255 - pos * 3);
+}
+
+// colorwheel on each ring, phase-rotated by wheel angle (deg).
+// mode: 0 = both rings, 1 = large ring only, 2 = small ring only
+static void renderRings(float wheelDegX, float wheelDegY, int mode = 0)
+{
+  float offX = wheelDegX * (255.0f / 360.0f);
+  float offY = wheelDegY * (255.0f / 360.0f);
+  for (int i = 0; i < RING1_LEDS; i++) {
+    uint8_t hue = (uint8_t)(i * 255.0f / RING1_LEDS + offX);
+    rings.setPixelColor(i, mode == 2 ? 0 : wheelColor(hue));
+  }
+  for (int i = 0; i < RING2_LEDS; i++) {
+    uint8_t hue = (uint8_t)(i * 255.0f / RING2_LEDS + offY);
+    rings.setPixelColor(RING1_LEDS + i, mode == 1 ? 0 : wheelColor(hue));
+  }
+  rings.show();
+}
+
+// boot intro: spin the large ring's wheel, then the small ring's (one rev each)
+static void bootSequence()
+{
+  uint32_t t0 = millis();
+  while (millis() - t0 < BOOT_RING_MS)
+    renderRings((millis() - t0) * 360.0f / BOOT_RING_MS, 0, 1);
+  t0 = millis();
+  while (millis() - t0 < BOOT_RING_MS)
+    renderRings(0, (millis() - t0) * 360.0f / BOOT_RING_MS, 2);
+  renderRings(0, 0);
+}
 
 // ---------- Dynamixel bus ----------
 #define DXL_SERIAL    Serial0
@@ -131,7 +179,13 @@ void setup()
   imuReady = mpuInit();
   Serial.printf("MPU6886 module: %s\n", imuReady ? "found" : "NOT found - check Grove wiring");
 
-  // LED: MisBKit-style init (powers the LED gate on GPIO38, white flash)
+  // LED rings on G5 FIRST (Adafruit NeoPixel claims an RMT channel here,
+  // before the onboard LED's neopixelWrite touches the same peripheral)
+  rings.begin();
+  rings.setBrightness(RING_BRIGHTNESS);
+  bootSequence();   // ~4 s: large ring wheel spins, then small ring wheel
+
+  // onboard RGB LED: MisBKit-style init (powers the LED gate on GPIO38, white flash)
   led::init();
 
   pinMode(pins::motorsControl, OUTPUT);
@@ -190,6 +244,9 @@ void loop()
     int g = tiltToGoal(tiltYF);
     if (abs(g - lastGoalY) > POS_DEADBAND) { dxl.setGoalPosition(DXL_ID_Y, g); lastGoalY = g; }
   }
+
+  // rings: colorwheels rotate with tilt (amplified by WHEEL_SPIN_GAIN)
+  renderRings(tiltXF * WHEEL_SPIN_GAIN, tiltYF * WHEEL_SPIN_GAIN);
 
   // telemetry (~5 Hz)
   static uint32_t lastPrint = 0;

@@ -7,3 +7,8 @@
 # Chat transcripts are backed up here but NOT published to GitHub by default.
 # Remove the line below if you want them in the repo.
 docs/chat_transcripts/
+
+# KiCad
+*.lck
+.history/
+*-backups/
